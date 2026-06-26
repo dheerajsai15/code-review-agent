@@ -7,8 +7,11 @@ import { emptyUsage } from "./usage";
 // offline so the fan-out / interrupt / checkpoint plumbing can be exercised
 // before spending tokens.
 
-const FindingSchema = z.object({
-  file: z.string(),
+// What the MODEL is asked to return — note there is no `file`. We already know
+// the path (we sent exactly one file), so we attach it ourselves rather than ask
+// the model to guess it. This both saves tokens and removes a whole class of
+// wrong/relative/hallucinated paths.
+const ModelFindingSchema = z.object({
   severity: z.enum(["blocker", "major", "minor", "nit"]),
   category: z.enum([
     "bug",
@@ -25,7 +28,7 @@ const FindingSchema = z.object({
 });
 
 const ResponseSchema = z.object({
-  findings: z.array(FindingSchema),
+  findings: z.array(ModelFindingSchema),
 });
 
 const SYSTEM_PROMPT = `You are a precise, senior code reviewer. You review ONE changed file's diff.
@@ -71,8 +74,8 @@ async function reviewWithOpenAI(file: FileDiff): Promise<ReviewResult> {
     { role: "user", content: userPrompt },
   ]);
 
-  // Normalize: force the model's `file` to the real path; drop anything malformed.
-  const findings = res.findings.map((f) => ({ ...f, file: file.path }));
+  // Attach the authoritative path (the model was not asked for it).
+  const findings: Finding[] = res.findings.map((f) => ({ ...f, file: file.path }));
   // TODO: thread real token usage from response_metadata once we stop relying on
   // withStructuredOutput (which hides usage). Approximate for now.
   return { findings, usage: emptyUsage() };

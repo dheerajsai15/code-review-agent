@@ -7,7 +7,18 @@ import { reviewFile } from "../llm";
 // channels with reducers (fileReviews=concat, usage=sum), which is how the
 // parallel branches merge on fan-in.
 export async function review(payload: { file: FileDiff }): Promise<Partial<StateType>> {
-  const { findings, usage } = await reviewFile(payload.file);
-  console.log(`[review] ${payload.file.path} — ${findings.length} finding(s)`);
-  return { fileReviews: findings, usage };
+  const { file } = payload;
+  try {
+    const { findings, usage } = await reviewFile(file);
+    console.log(`[review] ${file.path} — ${findings.length} finding(s)`);
+    return { fileReviews: findings, usage };
+  } catch (err) {
+    // Resilience at the fan-in barrier: aggregate waits for ALL review branches,
+    // so one file's failure (LLM/network error, or a schema-validation throw)
+    // must not crash the superstep. Log it and contribute zero findings; the
+    // other branches and the rest of the run continue unaffected.
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[review] ${file.path} — skipped (error: ${msg})`);
+    return { fileReviews: [] };
+  }
 }

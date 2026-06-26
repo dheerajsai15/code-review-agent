@@ -6,6 +6,7 @@
   "description": "Autonomous GitHub PR review agent (LangGraph.js MVP)",
   "scripts": {
     "review": "tsx src/cli.ts review",
+    "review:debug": "node --inspect-brk --import tsx src/cli.ts review",
     "resume": "tsx src/cli.ts resume",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
