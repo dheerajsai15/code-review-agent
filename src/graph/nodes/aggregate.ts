@@ -1,5 +1,5 @@
 import type { StateType } from "../state";
-import type { Finding, Severity } from "../types";
+import type { Finding, Severity } from "../../domain/types";
 
 // Deterministic node (plan §4). No LLM: drop low-confidence noise, rank by
 // severity, group by file, and render the single summary markdown body (FR-4).

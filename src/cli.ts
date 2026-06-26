@@ -2,11 +2,11 @@ import "dotenv/config";
 import { createInterface } from "node:readline/promises";
 import { Command, type StateSnapshot } from "@langchain/langgraph";
 import { buildGraph, type App } from "./graph";
-import { getCheckpointer, closeCheckpointer } from "./checkpointer";
-import { parsePrUrl, threadId } from "./url";
-import { mockResolveHeadSha, mockFetchPrMeta } from "./mock-data";
-import { useRealGitHub, fetchPrMeta } from "./github";
-import type { Finding } from "./types";
+import { getCheckpointer, closeCheckpointer } from "./services/checkpointer";
+import { parsePrUrl, threadId } from "./domain/pr-url";
+import { mockResolveHeadSha, mockFetchPrMeta } from "./services/mocks";
+import { useRealGitHub, fetchPrMeta } from "./services/github";
+import type { Finding } from "./domain/types";
 
 type Decision = "approve" | "abort";
 

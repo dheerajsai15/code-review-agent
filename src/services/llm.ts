@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { FileDiff, Finding, Usage } from "./types";
-import { emptyUsage } from "./usage";
+import type { FileDiff, Finding, Usage } from "../domain/types";
+import { emptyUsage } from "../domain/usage";
 
 // The single LLM call site (plan §5). Set USE_LLM=true + OPENAI_API_KEY to use a
 // real model; otherwise a deterministic stub keeps the whole graph runnable

@@ -1,5 +1,5 @@
 import type { StateType } from "../state";
-import { getPublisher } from "../publisher";
+import { getPublisher } from "../../services/publisher";
 
 // Deterministic / IO node (FR-6). Only reached on approval. Posts the single
 // summary comment through the PrPublisher interface (PAT-backed when a token is

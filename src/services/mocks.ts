@@ -1,4 +1,4 @@
-import type { PrRef, PrMeta, FileDiff } from "./types";
+import type { PrRef, PrMeta, FileDiff } from "../domain/types";
 
 // Stand-ins for GitHub I/O (build step 1). Replaced by Octokit in step 2.
 // Both are deterministic so the same URL yields the same sha -> same thread_id,

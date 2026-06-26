@@ -1,4 +1,4 @@
-import type { PrRef } from "./types";
+import type { PrRef } from "../domain/types";
 import { getOctokit, useRealGitHub } from "./github";
 
 // All GitHub writes go through this interface (FR-2 / plan §3) so swapping

@@ -1,6 +1,6 @@
 import { Send } from "@langchain/langgraph";
 import type { StateType } from "./state";
-import { isReviewable } from "./triage";
+import { isReviewable } from "../domain/triage";
 
 // Conditional-edge router after ingest. Triage runs here (deterministic, no LLM):
 // filter out unreviewable files, then fan out one `review` branch per survivor

@@ -1,6 +1,6 @@
 import type { StateType } from "../state";
-import { useRealGitHub, fetchChangedFiles } from "../github";
-import { mockFetchFiles } from "../mock-data";
+import { useRealGitHub, fetchChangedFiles } from "../../services/github";
+import { mockFetchFiles } from "../../services/mocks";
 
 // Deterministic / IO node (FR-3). The CLI already resolved full PR metadata into
 // state.pr (and used it to build the thread_id), so ingest only fetches the

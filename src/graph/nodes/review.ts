@@ -1,6 +1,6 @@
 import type { StateType } from "../state";
-import type { FileDiff } from "../types";
-import { reviewFile } from "../llm";
+import type { FileDiff } from "../../domain/types";
+import { reviewFile } from "../../services/llm";
 
 // The only LLM node (plan §4). Spawned once per file via `Send`, so it receives
 // a single file's payload — NOT the whole state.files list. Its return targets

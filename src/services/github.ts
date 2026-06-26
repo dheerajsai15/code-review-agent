@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/rest";
-import type { PrRef, PrMeta, FileDiff } from "./types";
+import type { PrRef, PrMeta, FileDiff } from "../domain/types";
 
 // All GitHub reads (ingest) live here. Writes go through PrPublisher (publisher.ts),
 // which uses getOctokit() from this module. Real GitHub is used when GITHUB_TOKEN
