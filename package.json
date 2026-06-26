@@ -1,0 +1,30 @@
+{
+  "name": "pr-review-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Autonomous GitHub PR review agent (LangGraph.js MVP)",
+  "scripts": {
+    "review": "tsx src/cli.ts review",
+    "resume": "tsx src/cli.ts resume",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@langchain/core": "^0.3.0",
+    "@octokit/rest": "^21.0.0",
+    "@langchain/langgraph": "^0.2.0",
+    "@langchain/langgraph-checkpoint-postgres": "^0.0.4",
+    "@langchain/openai": "^0.3.0",
+    "dotenv": "^16.4.0",
+    "pg": "^8.12.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}
