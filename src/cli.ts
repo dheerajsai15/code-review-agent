@@ -4,8 +4,8 @@ import { Command, type StateSnapshot } from "@langchain/langgraph";
 import { buildGraph, type App } from "./graph";
 import { getCheckpointer, closeCheckpointer } from "./checkpointer";
 import { parsePrUrl, threadId } from "./url";
-import { mockResolveHeadSha } from "./mock-data";
-import { useRealGitHub, resolveHeadSha } from "./github";
+import { mockResolveHeadSha, mockFetchPrMeta } from "./mock-data";
+import { useRealGitHub, fetchPrMeta } from "./github";
 import type { Finding } from "./types";
 
 type Decision = "approve" | "abort";
@@ -44,17 +44,18 @@ async function runReview(args: string[]): Promise<void> {
   const decisionFlag = parseDecisionFlag(args);
 
   const ref = parsePrUrl(url);
-  // Resolve the live head sha (also validates URL + token access, FR-1/FR-2).
-  const sha = useRealGitHub() ? await resolveHeadSha(ref) : mockResolveHeadSha(ref);
-  const tid = threadId(ref, sha);
+  // Resolve the FULL PR metadata once (also validates URL + token access,
+  // FR-1/FR-2). Seeding it lets ingest skip its own meta fetch.
+  const pr = useRealGitHub() ? await fetchPrMeta(ref) : mockFetchPrMeta(ref, mockResolveHeadSha(ref));
+  const tid = threadId(ref, pr.sha);
   const config = { configurable: { thread_id: tid } };
 
   console.log(`thread_id: ${tid}\n`);
 
   const app = buildGraph(await getCheckpointer());
 
-  // Seed state.pr so ingest knows which PR to fetch.
-  await app.invoke({ pr: { ...ref, sha, author: "", title: "" } }, config);
+  // Seed full PR metadata; ingest only fetches the changed files.
+  await app.invoke({ pr }, config);
 
   await handleGate(app, config, tid, decisionFlag);
 }

@@ -19,13 +19,9 @@ export function getOctokit(): Octokit {
   return octokit;
 }
 
-/** Cheap "GET pull" used by the CLI to resolve the head sha (for thread_id) and
- *  validate access early (FR-1/FR-2) — fails fast with a clear message. */
-export async function resolveHeadSha(ref: PrRef): Promise<string> {
-  const meta = await fetchPrMeta(ref);
-  return meta.sha;
-}
-
+// Used by the CLI before invoke: resolves full PR metadata (incl. head sha for
+// the thread_id) and validates access early (FR-1/FR-2). Seeding this into state
+// lets ingest skip its own meta fetch — one `pulls.get`, not two.
 export async function fetchPrMeta(ref: PrRef): Promise<PrMeta> {
   try {
     const { data } = await getOctokit().pulls.get({
