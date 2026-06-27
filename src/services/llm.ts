@@ -1,6 +1,8 @@
 import { z } from "zod";
+import type { AIMessage } from "@langchain/core/messages";
 import type { FileDiff, Finding, Usage } from "../domain/types";
 import { emptyUsage } from "../domain/usage";
+import { getModelPrice } from "./pricing";
 
 // The single LLM call site (plan §5). Set USE_LLM=true + OPENAI_API_KEY to use a
 // real model; otherwise a deterministic stub keeps the whole graph runnable
@@ -52,11 +54,14 @@ export async function reviewFile(file: FileDiff): Promise<ReviewResult> {
 async function reviewWithOpenAI(file: FileDiff): Promise<ReviewResult> {
   // Imported lazily so the stub path has no hard dependency at runtime.
   const { ChatOpenAI } = await import("@langchain/openai");
-  const model = new ChatOpenAI({
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    temperature: 0,
+  const modelName = process.env.OPENAI_MODEL ?? "gpt-5.4-mini";
+  const model = new ChatOpenAI({ model: modelName, temperature: 0 });
+  // includeRaw keeps the underlying AIMessage alongside the parsed object, so we
+  // can read `usage_metadata` (plain withStructuredOutput discards it).
+  const structured = model.withStructuredOutput(ResponseSchema, {
+    name: "report",
+    includeRaw: true,
   });
-  const structured = model.withStructuredOutput(ResponseSchema, { name: "report" });
 
   const userPrompt = [
     `Path: ${file.path}`,
@@ -75,10 +80,23 @@ async function reviewWithOpenAI(file: FileDiff): Promise<ReviewResult> {
   ]);
 
   // Attach the authoritative path (the model was not asked for it).
-  const findings: Finding[] = res.findings.map((f) => ({ ...f, file: file.path }));
-  // TODO: thread real token usage from response_metadata once we stop relying on
-  // withStructuredOutput (which hides usage). Approximate for now.
-  return { findings, usage: emptyUsage() };
+  const findings: Finding[] = res.parsed.findings.map((f) => ({ ...f, file: file.path }));
+  const usage = await usageFromMessage(modelName, res.raw);
+  return { findings, usage };
+}
+
+/** Turns an AIMessage's standardized usage_metadata into our Usage + cost. */
+async function usageFromMessage(model: string, raw: AIMessage): Promise<Usage> {
+  const meta = raw.usage_metadata;
+  if (!meta) return emptyUsage();
+  const price = await getModelPrice(model);
+  const costUsd = meta.input_tokens * price.input + meta.output_tokens * price.output;
+  return {
+    promptTokens: meta.input_tokens,
+    completionTokens: meta.output_tokens,
+    totalTokens: meta.total_tokens,
+    costUsd,
+  };
 }
 
 // Deterministic offline reviewer: emits a finding when it spots a couple of cheap

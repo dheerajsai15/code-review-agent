@@ -6,7 +6,7 @@ import { getCheckpointer, closeCheckpointer } from "./services/checkpointer";
 import { parsePrUrl, threadId } from "./domain/pr-url";
 import { mockResolveHeadSha, mockFetchPrMeta } from "./services/mocks";
 import { useRealGitHub, fetchPrMeta } from "./services/github";
-import type { Finding } from "./domain/types";
+import type { Finding, Usage } from "./domain/types";
 
 type Decision = "approve" | "abort";
 
@@ -148,11 +148,21 @@ async function promptDecision(): Promise<Decision | null> {
 }
 
 function reportOutcome(snap: StateSnapshot): void {
-  const values = snap.values as { approved?: boolean; summaryBody?: string };
+  const values = snap.values as { approved?: boolean; summaryBody?: string; usage?: Usage };
   if (values.approved === true) console.log("\nOutcome: POSTED");
   else if (values.approved === false) console.log("\nOutcome: ABORTED (nothing posted)");
   else if (!values.summaryBody) console.log("\nOutcome: SKIPPED (no reviewable files)");
   else console.log("\nOutcome: pending (still at the gate)");
+  printUsage(values.usage);
+}
+
+function printUsage(usage?: Usage): void {
+  if (!usage || usage.totalTokens === 0) return;
+  const cost = usage.costUsd > 0 ? ` — ~$${usage.costUsd.toFixed(4)}` : "";
+  console.log(
+    `Tokens: ${usage.totalTokens} ` +
+      `(prompt ${usage.promptTokens} / completion ${usage.completionTokens})${cost}`,
+  );
 }
 
 main().catch((err) => {
