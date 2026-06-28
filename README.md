@@ -109,5 +109,3 @@ src/
   services/         side effects: GitHub (Octokit), OpenAI, checkpointer, pricing
 scripts/            demo-repo generator and one-off probes
 ```
-
-```
